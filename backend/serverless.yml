@@ -1,0 +1,71 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: sorinache
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: backend
+
+provider:
+  name: aws
+  runtime: python3.12
+  profile: serverlessDev
+  region: eu-north-1
+  environment:
+    USER_TABLE_NAME: ${self:custom.userTableName}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+        - dynamodb:GetItem
+      Resource: !GetAtt UsersTable.Arn
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+
+custom:
+  userTableName: user-management
+  textFilesStorageBucketName: serverlessdemo-sorinache-textfilesstoragebucket
+
+functions:
+  getUser:
+    handler: lambdas/getUser.lambda_handler
+    events:
+      - httpApi:
+          path: /get-user/{email}
+          method: GET
+          cors: true
+
+resources:
+  Resources:
+    TextFilesStorageBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.textFilesStorageBucketName}
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.userTableName}
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: name
+            AttributeType: S
+          - AttributeName: updatedDate
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: name-index
+            KeySchema:
+              - AttributeName: name
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: name-updatedDate-index
+            KeySchema:
+              - AttributeName: name
+                KeyType: HASH
+              - AttributeName: updatedDate
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
