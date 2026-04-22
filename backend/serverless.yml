@@ -16,27 +16,27 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:GetItem
         - dynamodb:Query
-        - dynamodb:Scan
         - dynamodb:PutItem
         - dynamodb:DeleteItem
       Resource:
         - !GetAtt UsersTable.Arn
         - !Sub "${UsersTable.Arn}/index/*"  # Permissions for GSIs
-    - Effect: Allow
-      Action:
-        - s3:PutObject
-        - s3:GetObject
-        - s3:DeleteObject
-      Resource:
-        - !GetAtt TextFilesStorageBucket.Arn
-        - !Sub "${TextFilesStorageBucket.Arn}/*"
+# TODO: Re-enable S3 permissions when S3 endpoints are added (least privilege)
+#    - Effect: Allow
+#      Action:
+#        - s3:PutObject
+#        - s3:GetObject
+#        - s3:DeleteObject
+#      Resource:
+#        - !GetAtt TextFilesStorageBucket.Arn
+#        - !Sub "${TextFilesStorageBucket.Arn}/*"
   # Uncomment to easily set up a custom domain. Read the docs for more details:
   # https://www.serverless.com/framework/docs/providers/aws/guide/domains
   # domain: api.example.com
 
 custom:
-  userTableName: user-management
-  textFilesStorageBucketName: serverlessdemo-sorinache-textfilesstoragebucket
+  userTableName: ${self:service}-${sls:stage}-user-management
+  textFilesStorageBucketName: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}-textfiles
 
 functions:
   getUser:
@@ -45,7 +45,7 @@ functions:
       - httpApi:
           path: /get-user/{email}
           method: GET
-          cors: true
+#          cors: true # temporary disabled until a frontend is added
 
 resources:
   Resources:
