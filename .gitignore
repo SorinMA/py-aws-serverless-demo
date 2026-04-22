@@ -1,0 +1,19 @@
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Serverless
+.serverless/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Environment
+.env
+.env.local
