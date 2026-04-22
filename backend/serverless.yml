@@ -8,9 +8,10 @@ provider:
   runtime: python3.12
   profile: serverlessDev
   region: eu-north-1
+  stage: ${self:custom.stage}
   apiGateway:
     apiKeys:
-      - ${self:service}-${sls:stage}-api-key
+      - ${self:service}-${self:custom.stage}-api-key
     usagePlan:
       throttle:
         rateLimit: 10
@@ -42,8 +43,9 @@ provider:
   # domain: api.example.com
 
 custom:
-  userTableName: ${self:service}-${sls:stage}-user-management
-  textFilesStorageBucketName: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}-textfiles
+  stage: ${opt:stage, 'dev'}
+  userTableName: ${self:service}-${self:custom.stage}-user-management
+  textFilesStorageBucketName: ${self:service}-${self:custom.stage}-${aws:accountId}-${aws:region}-textfiles
 
 functions:
   getUser:
