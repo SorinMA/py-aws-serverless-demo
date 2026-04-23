@@ -53,3 +53,40 @@ This project uses a Cognito **User Pool App Client** (no secret) and the `USER_P
     "PASSWORD": "YourPassword123"
   }
 }
+```
+
+
+### If you receive a `NEW_PASSWORD_REQUIRED` challenge
+
+If the user was created with a **temporary password**, the `InitiateAuth` response may NOT contain `AuthenticationResult`.  
+Instead, it will contain:
+
+- `ChallengeName: "NEW_PASSWORD_REQUIRED"`
+- `Session: "<...>"`
+
+In that case, you must respond to the challenge once to set a new password.
+
+#### RespondToAuthChallenge (set a new password)
+
+**Request**
+
+- **Method:** `POST`
+- **URL:** `https://cognito-idp.eu-north-1.amazonaws.com/`
+
+**Headers**
+
+- `Content-Type: application/x-amz-json-1.1`
+- `X-Amz-Target: AWSCognitoIdentityProviderService.RespondToAuthChallenge`
+
+**Body (raw JSON)**
+
+```json
+{
+  "ClientId": "<CognitoUserPoolClientId>",
+  "ChallengeName": "NEW_PASSWORD_REQUIRED",
+  "Session": "<Session-from-InitiateAuth>",
+  "ChallengeResponses": {
+    "USERNAME": "test@example.com",
+    "NEW_PASSWORD": "YourNewPassword123!"
+  }
+}
