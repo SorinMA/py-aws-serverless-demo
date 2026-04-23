@@ -90,3 +90,14 @@ In that case, you must respond to the challenge once to set a new password.
     "NEW_PASSWORD": "YourNewPassword123!"
   }
 }
+```
+
+- **403 Forbidden**
+  - Make sure you are sending the **API key value** (not the key name) in `x-api-key`.
+  - Make sure you send exactly one `Authorization` header:
+    - `Authorization: Bearer <IdToken>`
+  - In Postman, avoid setting the token in both the **Authorization** tab and the **Headers** tab at the same time (can cause duplicate headers).
+
+- **401 Unauthorized**
+  - Usually means the JWT is missing/invalid/expired, or you are using the wrong token type.
+  - Use `AuthenticationResult.IdToken`.
