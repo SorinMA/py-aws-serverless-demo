@@ -1,0 +1,162 @@
+org: sorinache
+# Name of this Serverless "service" (becomes part of the CloudFormation stack name)
+service: frontend
+
+# Pin major version so upgrades don’t surprise you
+frameworkVersion: "4"
+
+provider:
+  # Deploying to AWS
+  name: aws
+
+  # S3 bucket + CloudFormation stack live in this region (CloudFront is global)
+  region: eu-north-1
+
+  # Stage (environment): dev by default, override with --stage prod
+  stage: ${self:custom.stage}
+  profile: serverlessDev
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  # Base name used when generating resource names
+  siteName: ${self:service}-${self:custom.stage}-${aws:accountId}-${aws:region}-fe
+
+  # Vite production build output directory
+  distDir: dist
+
+resources:
+  # Everything below is raw CloudFormation embedded into Serverless
+  Resources:
+
+    # S3 bucket that stores the built website files (index.html, assets/*)
+    SiteBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        # Bucket names must be globally unique across AWS
+        BucketName: ${self:custom.siteName}-bucket
+
+        # Block any form of public access at the bucket level.
+        # CloudFront will access it privately via OAC + a bucket policy.
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    # Origin Access Control (OAC) lets CloudFront sign requests to a PRIVATE S3 bucket
+    CloudFrontOAC:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          # Friendly name for debugging in AWS console
+          Name: ${self:custom.siteName}-oac
+
+          # This OAC is for an S3 origin
+          OriginAccessControlOriginType: s3
+
+          # Always sign requests from CloudFront to S3
+          SigningBehavior: always
+
+          # Use AWS SigV4 signing
+          SigningProtocol: sigv4
+
+    # CloudFront distribution: this is your public HTTPS URL
+    SiteDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          # Enable the distribution
+          Enabled: true
+
+          # When requesting "/" CloudFront will serve "/index.html"
+          DefaultRootObject: index.html
+
+          # Use HTTP/2 (better performance)
+          HttpVersion: http2
+
+          # Origins: where CloudFront fetches the content from (our S3 bucket)
+          Origins:
+            - # Internal origin identifier (referenced later in DefaultCacheBehavior)
+              Id: SiteOrigin
+
+              # S3 regional domain name is the recommended origin host
+              DomainName: !GetAtt SiteBucket.RegionalDomainName
+
+              # This tells CloudFront “this is an S3 origin”
+              S3OriginConfig: {}
+
+              # Attach OAC so CloudFront can access private bucket objects
+              OriginAccessControlId: !Ref CloudFrontOAC
+
+          # Default behavior for all paths (/, /assets/*, etc.)
+          DefaultCacheBehavior:
+            # Must match Origins[].Id
+            TargetOriginId: SiteOrigin
+
+            # Redirect HTTP to HTTPS
+            ViewerProtocolPolicy: redirect-to-https
+
+            # Allowed HTTP methods for a static site
+            AllowedMethods: [GET, HEAD, OPTIONS]
+
+            # Which methods are cached
+            CachedMethods: [GET, HEAD, OPTIONS]
+
+            # Enable compression (gzip/brotli) where supported
+            Compress: true
+
+            # Simple/legacy caching config (fine for learning)
+            ForwardedValues:
+              # Don’t forward query strings (better caching)
+              QueryString: false
+
+              # Don’t forward cookies (better caching)
+              Cookies:
+                Forward: none
+
+          # Note: For React Router deep links (/about), you’ll likely add
+          # CustomErrorResponses later to map 403/404 -> /index.html
+
+    # Bucket policy: allow CloudFront distribution to read objects from the private bucket
+    SiteBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        # Attach policy to this bucket
+        Bucket: !Ref SiteBucket
+
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - # Statement label
+              Sid: AllowCloudFrontRead
+
+              # Allow access (read-only)
+              Effect: Allow
+
+              # CloudFront service principal
+              Principal:
+                Service: cloudfront.amazonaws.com
+
+              # Only allow reading objects
+              Action: s3:GetObject
+
+              # All objects in the bucket
+              Resource: !Sub "${SiteBucket.Arn}/*"
+
+              # Extra restriction: only requests from THIS distribution are allowed
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}"
+
+  Outputs:
+    # CloudFront URL you can open in the browser
+    CloudFrontUrl:
+      Value: !Sub "https://${SiteDistribution.DomainName}"
+
+    # Bucket name used to upload your Vite dist/ files
+    BucketName:
+      Value: !Ref SiteBucket
+
+    # Distribution ID used for invalidations (handy for automation)
+    DistributionId:
+      Value: !Ref SiteDistribution
