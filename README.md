@@ -4,18 +4,22 @@ A demonstration project showcasing AWS serverless architecture using the Serverl
 
 ## Project Structure
 
-- **backend/** - Serverless API with Lambda functions, DynamoDB, and S3
+- **backend/** - Serverless API with Lambda functions, DynamoDB, S3, and Cognito (User Pool)
+- **frontend/** - Static React (Vite) app deployed to S3 + CloudFront (Serverless Framework)
 
 ## Tech Stack
 
 - **AWS Lambda** - Python 3.12 runtime
-- **API Gateway** - HTTP API endpoints
+- **API Gateway** - REST API endpoints
 - **DynamoDB** - NoSQL database with Global Secondary Indexes
-- **S3** - Object storage
+- **S3** - Object storage + static website hosting
+- **CloudFront** - CDN for frontend
+- **Cognito User Pool** - Authentication
 - **Serverless Framework** - Infrastructure as Code
 
-## Quick Start
+## Deploy order (important)
 
-```bash
-cd backend
-serverless deploy
+For a **fresh setup** or after running `serverless remove` on both services, deploy in this order:
+
+1) Frontend first (it exports CloudFront values used by the backend)
+2) Backend second

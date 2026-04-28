@@ -2,6 +2,7 @@
 org: sorinache
 # "service" is the name of this project. This will also be added to your AWS resource names.
 service: backend
+frontendService: frontend
 
 provider:
   name: aws
@@ -121,6 +122,30 @@ resources:
           - ALLOW_USER_PASSWORD_AUTH
           - ALLOW_USER_SRP_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
+        SupportedIdentityProviders:
+          - COGNITO
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - openid
+          - email
+          - profile
+        CallbackURLs:
+          - Fn::Sub:
+              - "https://${FrontendDomain}/auth/callback"
+              - FrontendDomain:
+                  Fn::ImportValue: ${self:frontendService}-${self:custom.stage}-CloudFrontDomainName
+        LogoutURLs:
+          - Fn::Sub:
+              - "https://${FrontendDomain}/"
+              - FrontendDomain:
+                  Fn::ImportValue: ${self:frontendService}-${self:custom.stage}-CloudFrontDomainName
+    CognitoUserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: ${self:service}-${self:custom.stage}-${aws:accountId}-cupd
+        UserPoolId: !Ref CognitoUserPool
     ApiGatewayAuthorizer:
       Type: AWS::ApiGateway::Authorizer
       Properties:

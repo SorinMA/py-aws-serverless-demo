@@ -166,3 +166,8 @@ resources:
       Value: !Ref SiteDistribution
       Export:
         Name: ${self:service}-${self:custom.stage}-DistributionId
+    #This will be added to share the domain URL
+    CloudFrontDomainName:
+      Value: !GetAtt SiteDistribution.DomainName
+      Export:
+        Name: ${self:service}-${self:custom.stage}-CloudFrontDomainName
