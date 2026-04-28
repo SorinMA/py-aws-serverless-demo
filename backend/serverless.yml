@@ -2,7 +2,6 @@
 org: sorinache
 # "service" is the name of this project. This will also be added to your AWS resource names.
 service: backend
-frontendService: frontend
 
 provider:
   name: aws
@@ -44,6 +43,7 @@ provider:
   # domain: api.example.com
 
 custom:
+  frontendService: frontend
   stage: ${opt:stage, 'dev'}
   userTableName: ${self:service}-${self:custom.stage}-user-management
   textFilesStorageBucketName: ${self:service}-${self:custom.stage}-${aws:accountId}-${aws:region}-textfiles
@@ -135,12 +135,12 @@ resources:
           - Fn::Sub:
               - "https://${FrontendDomain}/auth/callback"
               - FrontendDomain:
-                  Fn::ImportValue: ${self:frontendService}-${self:custom.stage}-CloudFrontDomainName
+                  Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
         LogoutURLs:
           - Fn::Sub:
               - "https://${FrontendDomain}/"
               - FrontendDomain:
-                  Fn::ImportValue: ${self:frontendService}-${self:custom.stage}-CloudFrontDomainName
+                  Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
     CognitoUserPoolDomain:
       Type: AWS::Cognito::UserPoolDomain
       Properties:
