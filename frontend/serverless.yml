@@ -116,7 +116,13 @@ resources:
 
           # Note: For React Router deep links (/about), you’ll likely add
           # CustomErrorResponses later to map 403/404 -> /index.html
-
+          CustomErrorResponses:
+            - ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html 
     # Bucket policy: allow CloudFront distribution to read objects from the private bucket
     SiteBucketPolicy:
       Type: AWS::S3::BucketPolicy
