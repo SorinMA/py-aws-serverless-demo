@@ -1,16 +1,38 @@
-# React + Vite
+# Frontend Deployment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This frontend is deployed as a static site using AWS S3 and CloudFront.
 
-Currently, two official plugins are available:
+## Deploy
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Deploy the infrastructure  
+   `serverless deploy --stage dev`
 
-## React Compiler
+2. Build the frontend  
+   `npm run build`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+3. Upload the build output to S3  
+   `aws s3 sync dist s3://<BucketName> --delete --profile serverlessDev`
 
-## Expanding the ESLint configuration
+4. Invalidate the CloudFront cache  
+   `aws cloudfront create-invalidation --distribution-id <DistributionId> --paths "/*" --profile serverlessDev`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Notes
+
+### Where do I find the `distribution-id`?
+
+You can find it in:
+- AWS Console → **CloudFront** → **Distributions** → **The first column is the id**
+
+### How do I check whether the invalidation finished?
+
+`aws cloudfront get-invalidation --distribution-id YOUR_DISTRIBUTION_ID --id YOUR_INVALIDATION_ID --profile serverlessDev`
+
+When the status is `Completed`, the new files should be served.
+
+## Cleanup
+
+1. Empty the S3 bucket  
+   `aws s3 rm s3://YOUR_BUCKET_NAME --recursive --profile serverlessDev`
+
+2. Remove the stack  
+   `serverless remove --stage dev`
