@@ -152,11 +152,17 @@ resources:
     # CloudFront URL you can open in the browser
     CloudFrontUrl:
       Value: !Sub "https://${SiteDistribution.DomainName}"
+      Export:
+        Name: ${self:service}-${self:custom.stage}-CloudFrontUrl
 
     # Bucket name used to upload your Vite dist/ files
     BucketName:
       Value: !Ref SiteBucket
+      Export:
+        Name: ${self:service}-${self:custom.stage}-BucketName
 
     # Distribution ID used for invalidations (handy for automation)
     DistributionId:
       Value: !Ref SiteDistribution
+      Export:
+        Name: ${self:service}-${self:custom.stage}-DistributionId

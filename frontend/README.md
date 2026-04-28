@@ -4,8 +4,12 @@ This frontend is deployed as a static site using AWS S3 and CloudFront.
 
 ## Deploy
 
-1. Deploy the infrastructure  
-   `serverless deploy --stage dev`
+1. Deploy the infrastructure  (choose one of the following options):
+    1. **For Serverless-native and readable**  
+   `serverless deploy --stage dev; serverless info --stage dev --verbose`
+
+    2. **For maximum reliability + no Serverless dependency after deploy**  
+   `serverless deploy --stage dev; aws cloudformation describe-stacks --stack-name frontend-dev --region eu-north-1 --profile serverlessDev --query "Stacks[0].Outputs"`
 
 2. Build the frontend  
    `npm run build`
