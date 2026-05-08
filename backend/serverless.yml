@@ -18,6 +18,11 @@ provider:
         burstLimit: 15
   environment:
     USER_TABLE_NAME: ${self:custom.userTableName}
+    CORS_ALLOW_ORIGIN:
+      Fn::Sub:
+        - "https://${FrontendDomain}"
+        - FrontendDomain:
+            Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
   iamRoleStatements:
     - Effect: Allow
       Action:
