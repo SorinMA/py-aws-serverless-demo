@@ -40,3 +40,22 @@ When the status is `Completed`, the new files should be served.
 
 2. Remove the stack  
    `serverless remove --stage dev`
+
+   
+## Environment variables (`.env`)
+
+This frontend uses Vite env vars. The `.env` file is **not committed** to git (it is environment-specific).
+Use `.env.template` as a starting point.
+
+### Build your local `.env`
+
+1. Copy the template:
+
+   ```
+   copy .env.template .env
+   
+   OidcAuthority → VITE_OIDC_AUTHORITY
+   OidcClientId → VITE_OIDC_CLIENT_ID
+   OidcRedirectUri → VITE_OIDC_REDIRECT_URI
+   ApiBaseUrl → VITE_API_BASE_URL
+    ```
