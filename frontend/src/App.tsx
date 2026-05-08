@@ -54,30 +54,18 @@ function App() {
         );
     }
 
-    const signOutCognito = async () => {
-        // Clear local app state first
-        await auth.removeUser();
-
-        const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-        const clientId = import.meta.env.VITE_OIDC_CLIENT_ID;
-        const logoutUri = import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI;
-
-        if (!cognitoDomain || !clientId || !logoutUri) {
-            console.error("Missing logout env vars", {cognitoDomain, clientId, logoutUri});
-            return;
-        }
-
-        window.location.href =
-            `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    };
-
     return (
         <section id="center">
             <h1>Aplicatia lu Sorinu</h1>
             <pre style={{margin: 0}}>Hello: {String(auth.user?.profile?.email ?? "")}</pre>
 
             <div style={{display: "flex", gap: 8, marginTop: 12}}>
-                <button onClick={signOutCognito}>Sign out</button>
+                <button onClick={() => auth.signoutRedirect({
+                    post_logout_redirect_uri: import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
+                    state: { from: "signout-button" }
+                })}>
+                    Sign out
+                    </button>
 
                 <button onClick={onCallGetUser} disabled={isCallingApi}>
                     {isCallingApi ? "Calling…" : "Call getUser"}
