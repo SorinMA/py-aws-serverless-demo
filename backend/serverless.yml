@@ -122,6 +122,15 @@ resources:
         LambdaConfig:
           PostConfirmation:
             Fn::GetAtt: [ PostConfirmationLambdaFunction, Arn ]
+    PostConfirmationLambdaInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName:
+          Fn::GetAtt: [ PostConfirmationLambdaFunction, Arn ]
+        Principal: cognito-idp.amazonaws.com
+        SourceArn:
+          Fn::GetAtt: [ CognitoUserPool, Arn ]
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
