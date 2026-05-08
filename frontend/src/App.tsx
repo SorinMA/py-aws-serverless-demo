@@ -60,15 +60,12 @@ function App() {
             <pre style={{margin: 0}}>Hello: {String(auth.user?.profile?.email ?? "")}</pre>
 
             <div style={{display: "flex", gap: 8, marginTop: 12}}>
-                <button onClick={() => auth.signoutRedirect({
-                    post_logout_redirect_uri: import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI,
-                    state: { from: "signout-button" },
-                    extraQueryParams: {
-                        client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
-                    }
-                })}>
+                <button onClick={() => {
+                    auth.removeUser(); // clear local session
+                    window.location.href = `${import.meta.env.VITE_COGNITO_DOMAIN}/logout?client_id=${import.meta.env.VITE_OIDC_CLIENT_ID}&logout_uri=${encodeURIComponent(import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI)}`;
+                }}>
                     Sign out
-                    </button>
+                </button>
 
                 <button onClick={onCallGetUser} disabled={isCallingApi}>
                     {isCallingApi ? "Calling…" : "Call getUser"}
