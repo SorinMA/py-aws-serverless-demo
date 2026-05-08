@@ -215,3 +215,8 @@ resources:
           - "https://${FrontendDomain}/"
           - FrontendDomain:
               Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
+    CognitoHostedUiDomain:
+      Value:
+        Fn::Sub:
+          - "https://${DomainPrefix}.auth.${AWS::Region}.amazoncognito.com"
+          - DomainPrefix: ${self:service}-${self:custom.stage}-${aws:accountId}-cupd

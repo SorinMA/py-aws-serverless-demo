@@ -58,7 +58,7 @@ function App() {
         // Clear local app state first
         await auth.removeUser();
 
-        const cognitoDomain = import.meta.env.VITE_OIDC_AUTHORITY; // Hosted UI domain
+        const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
         const clientId = import.meta.env.VITE_OIDC_CLIENT_ID;
         const logoutUri = import.meta.env.VITE_OIDC_POST_LOGOUT_REDIRECT_URI;
 
