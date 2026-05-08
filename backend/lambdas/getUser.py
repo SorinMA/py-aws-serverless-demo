@@ -3,6 +3,7 @@ import datetime
 import os
 import logging
 from .common import json_response, is_valid_email
+from urllib.parse import unquote
 
 # Configure logger
 logger = logging.getLogger()
@@ -14,7 +15,8 @@ table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     path_params = event.get('pathParameters', {})
-    user_email = (path_params.get('email') or "").lower()
+    raw_email = path_params.get('email', '')
+    user_email = unquote(raw_email).strip().lower()
     # Validate email format
     if not user_email:
         logger.warning('Email parameter missing')

@@ -14,7 +14,7 @@ function App() {
         setError(null);
         setResult(null);
 
-        const accessToken = auth.user?.access_token;
+        const accessToken = auth.user?.id_token;
         const email = auth.user?.profile?.email as string | undefined;
 
         if (!accessToken) {
@@ -31,7 +31,6 @@ function App() {
             const data = await getUser({email, accessToken});
             setResult(data);
         } catch (e) {
-        else
             setError(e instanceof Error ? e.message : String(e));
         } finally {
             setIsCallingApi(false);
