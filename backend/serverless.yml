@@ -209,3 +209,9 @@ resources:
           - "https://${FrontendDomain}/auth/callback"
           - FrontendDomain:
               Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
+    OidcPostLogoutRedirectUri:
+      Value:
+        Fn::Sub:
+          - "https://${FrontendDomain}/"
+          - FrontendDomain:
+              Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName

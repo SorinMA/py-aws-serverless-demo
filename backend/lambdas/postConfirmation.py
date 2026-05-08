@@ -53,11 +53,13 @@ def lambda_handler(event, context):
 
     item = {
         "email": email,
-        "name": name,
         "updatedDate": now,
         # Helpful to store; stable unique identifier in Cognito
         "cognitoSub": user_attrs.get("sub", ""),
     }
+
+    if name:
+        item["name"] = name
 
     try:
         table.put_item(
