@@ -14,7 +14,7 @@ table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     path_params = event.get('pathParameters', {})
-    user_email = path_params.get('email')
+    user_email = (path_params.get('email') or "").lower()
     # Validate email format
     if not user_email:
         logger.warning('Email parameter missing')

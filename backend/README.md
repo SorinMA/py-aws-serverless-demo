@@ -100,3 +100,9 @@ In that case, you must respond to the challenge once to set a new password.
   }
 }
 ```
+
+
+## Pre-deploy check to validate the PostConfirmationLambdaFunction
+1. Run: `serverless package --stage userStage`
+
+2. Check: `.serverless/cloudformation-template-update-stack.json`

@@ -49,18 +49,20 @@ custom:
   textFilesStorageBucketName: ${self:service}-${self:custom.stage}-${aws:accountId}-${aws:region}-textfiles
 
 functions:
+  postConfirmation:
+    handler: lambdas/postConfirmation.lambda_handler
   getUser:
     handler: lambdas/getUser.lambda_handler
     events:
       - http:
           path: get-user/{email}
           method: get
-          private: true
+          private: true # comment and keep only cognito auth for frontend access
           authorizer:
             type: COGNITO_USER_POOLS
             authorizerId:
               Ref: ApiGatewayAuthorizer
-#          cors: true # temporary disabled until a frontend is added
+          cors: true
 
 resources:
   Resources:
@@ -112,6 +114,9 @@ resources:
           - email
         AutoVerifiedAttributes:
           - email
+        LambdaConfig:
+          PostConfirmation:
+            Fn::GetAtt: [ PostConfirmationLambdaFunction, Arn ]
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
@@ -161,3 +166,32 @@ resources:
       Value: !Ref CognitoUserPool
     CognitoUserPoolClientId:
       Value: !Ref CognitoUserPoolClient
+    # 1) API base URL: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    ApiBaseUrl:
+      Value:
+        Fn::Sub:
+          - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+          - ApiId:
+              Ref: ApiGatewayRestApi
+            Stage: ${self:custom.stage}
+
+    # 2) OIDC authority using the "cognito-idp region + userPoolId" style
+    #    https://cognito-idp.{region}.amazonaws.com/{userPoolId}
+    OidcAuthority:
+      Value:
+        Fn::Sub:
+          - "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}"
+          - UserPoolId: !Ref CognitoUserPool
+
+    # 3) OIDC client id (same as CognitoUserPoolClientId, but named for frontend usage)
+    OidcClientId:
+      Value: !Ref CognitoUserPoolClient
+
+    # 4) OIDC redirect URI (where Cognito sends the browser after login)
+    #    Uses the SAME frontend CloudFront domain import you already use in CallbackURLs.
+    OidcRedirectUri:
+      Value:
+        Fn::Sub:
+          - "https://${FrontendDomain}/auth/callback"
+          - FrontendDomain:
+              Fn::ImportValue: ${self:custom.frontendService}-${self:custom.stage}-CloudFrontDomainName
